@@ -48,33 +48,33 @@ class BraTSDataset(Dataset):
 
         for i in range(0, Nim):
             img_list.append([t1_list[i], t2_list[i], t1ce_list[i],
-                            flair_list[i], seg_list[i]])
+                             flair_list[i], seg_list[i]])
         return img_list
 
-    def load_img(img_files):
-        """ Load one image and its target form file
-        """
-        N = len(img_files)
-        # target
-        y = nib.load(
-            img_files[N-1]).get_fdata(dtype='float32', caching='unchanged')
-        y = y[40:200, 34:226, 8:136]
-        y[y == 4] = 3
+    # def load_img(img_files):
+    #     """ Load one image and its target form file
+    #     """
+    #     N = len(img_files)
+    #     # target
+    #     y = nib.load(
+    #         img_files[N-1]).get_fdata(dtype='float32', caching='unchanged')
+    #     y = y[40:200, 34:226, 8:136]
+    #     y[y == 4] = 3
 
-        X_norm = np.empty((240, 240, 155, 4))
-        for channel in range(N-1):
-            X = nib.load(img_files[channel]).get_fdata(
-                dtype='float32', caching='unchanged')
-            brain = X[X != 0]
-            brain_norm = np.zeros_like(X)  # background at -100
-            norm = (brain - np.mean(brain))/np.std(brain)
-            brain_norm[X != 0] = norm
-            X_norm[:, :, :, channel] = brain_norm
+    #     X_norm = np.empty((240, 240, 155, 4))
+    #     for channel in range(N-1):
+    #         X = nib.load(img_files[channel]).get_fdata(
+    #             dtype='float32', caching='unchanged')
+    #         brain = X[X != 0]
+    #         brain_norm = np.zeros_like(X)  # background at -100
+    #         norm = (brain - np.mean(brain))/np.std(brain)
+    #         brain_norm[X != 0] = norm
+    #         X_norm[:, :, :, channel] = brain_norm
 
-        X_norm = X_norm[40:200, 34:226, 8:136, :]
-        del(X, brain, brain_norm)
+    #     X_norm = X_norm[40:200, 34:226, 8:136, :]
+    #     del(X, brain, brain_norm)
 
-        return X_norm, y
+    #     return X_norm, y
 
     def __init__(self, datapath, transforms_):
         self.datapath = datapath
@@ -85,31 +85,15 @@ class BraTSDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, index):
-        'Generate one batch of data'
-        # Generate indexes of the batch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        images = []
+        mask = []
+        sample = samples[index]
+        for idx in range(0, len(sample)-2):
+            modal = nib.load(sample[idx]).get_fdata(
+                dtype='float32', caching='unchanged')
+            images.append(modal)
 
-        # Find list of IDs
-        samples_temp = [self.samples[k] for k in indexes]
-
-        # Generate data
-        images, mask = self.__data_generation(samples_temp)
-
-        if index == self.__len__()-1:
-            self.on_epoch_end()
+        mask = nib.load(sample[len(sample-1)]).get_fdata(
+            dtype='float32', caching='unchanged')
 
         return {"A": images, "B": mask}
-
-    def __data_generation(self, samples_temp):
-        # X : (n_samples, *dim, n_channels)
-        'Generates data containing batch_size samples'
-        # Initialization
-        X = np.empty((self.batch_size, *self.dim, self.n_channels))
-        y = np.empty((self.batch_size, *self.dim))
-
-        # Generate data
-        for i, IDs in enumerate(samples_temp):
-            # Store sample
-            X[i], y[i] = load_img(IDs)
-
-        return X.astype('float32'), y
