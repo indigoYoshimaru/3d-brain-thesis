@@ -95,8 +95,10 @@ def train():
              2 ** 4, opt.img_depth // 2 ** 4)
 
     # Initialize generator and discriminator
-    generator = GeneratorUNet()
-    discriminator = Discriminator()
+    generator = GeneratorUNet(in_channels=opt.channels,
+                              out_channels=opt.channels)
+    discriminator = Discriminator(
+        in_channels=opt.channels, out_channels=out_channels)
 
     if cuda:
         generator = generator.cuda()
@@ -131,16 +133,14 @@ def train():
     datapaths = read_dataset_dir()
 
     dataloader = DataLoader(
-        BraTSDataset(datapaths['train'] %
-                     opt.dataset_name, transforms_=transforms_),
+        BraTSDataset(datapaths['train'], transforms_=transforms_),
         batch_size=opt.batch_size,
         shuffle=True,
         num_workers=opt.n_cpu,
     )
 
     val_dataloader = DataLoader(
-        BraTSDataset(datapaths['val'] %
-                     opt.dataset_name, transforms_=transforms_),
+        BraTSDataset(datapaths['val'], transforms_=transforms_),
         batch_size=1,
         shuffle=True,
         num_workers=1,
@@ -182,8 +182,8 @@ def train():
         for i, batch in enumerate(dataloader):
 
             # Model inputs
-            real_A = Variable(batch["A"].unsqueeze_(1).type(Tensor))
-            real_B = Variable(batch["B"].unsqueeze_(1).type(Tensor))
+            real_A = Variable(torch.as_tensor(batch["A"]))
+            real_B = Variable(torch.as_tensor(batch["B"]))
 
             # Adversarial ground truths
             valid = Variable(
