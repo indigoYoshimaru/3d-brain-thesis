@@ -31,7 +31,7 @@ class CTDataset(Dataset):
 # update class for BraTS dataset
 
 class BraTSDataset(Dataset):
-    def read_images(img_dir: str) -> list:
+    def read_images(self, img_dir: str) -> list:
         # images lists
         t1_list = sorted(
             glob.glob('{}/**/*t1.nii.gz'.format(img_dir), recursive=True))
@@ -51,35 +51,10 @@ class BraTSDataset(Dataset):
                              flair_list[i], seg_list[i]])
         return img_list
 
-    # def load_img(img_files):
-    #     """ Load one image and its target form file
-    #     """
-    #     N = len(img_files)
-    #     # target
-    #     y = nib.load(
-    #         img_files[N-1]).get_fdata(dtype='float32', caching='unchanged')
-    #     y = y[40:200, 34:226, 8:136]
-    #     y[y == 4] = 3
-
-    #     X_norm = np.empty((240, 240, 155, 4))
-    #     for channel in range(N-1):
-    #         X = nib.load(img_files[channel]).get_fdata(
-    #             dtype='float32', caching='unchanged')
-    #         brain = X[X != 0]
-    #         brain_norm = np.zeros_like(X)  # background at -100
-    #         norm = (brain - np.mean(brain))/np.std(brain)
-    #         brain_norm[X != 0] = norm
-    #         X_norm[:, :, :, channel] = brain_norm
-
-    #     X_norm = X_norm[40:200, 34:226, 8:136, :]
-    #     del(X, brain, brain_norm)
-
-    #     return X_norm, y
-
     def __init__(self, datapath, transforms_):
         self.datapath = datapath
         self.transforms = transforms_
-        self.samples = read_images(datapath)
+        self.samples = self.read_images(datapath)
 
     def __len__(self):
         return len(self.samples)
@@ -87,13 +62,14 @@ class BraTSDataset(Dataset):
     def __getitem__(self, index):
         images = []
         mask = []
-        sample = samples[index]
+        sample = self.samples[index]
         for idx in range(0, len(sample)-2):
             modal = nib.load(sample[idx]).get_fdata(
                 dtype='float32', caching='unchanged')
             images.append(modal)
+        images = np.asarray(images)
 
-        mask = nib.load(sample[len(sample-1)]).get_fdata(
+        mask = nib.load(sample[len(sample)-1]).get_fdata(
             dtype='float32', caching='unchanged')
 
         return {"A": images, "B": mask}

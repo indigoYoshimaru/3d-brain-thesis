@@ -29,10 +29,10 @@ class UNetDown(nn.Module):
         self.model = nn.Sequential(*layers)
 
     def forward(self, x):
-        # print('in', x.shape)
-        # print('out', self.model(x).shape)
+        print('Down: ')
+        print('in', x.shape)
+        print('out', self.model(x).shape)
         return self.model(x)
-
 
 
 class UNetMid(nn.Module):
@@ -48,18 +48,19 @@ class UNetMid(nn.Module):
 
         self.model = nn.Sequential(*layers)
 
-
     def forward(self, x, skip_input):
         # print(x.shape)
         x = torch.cat((x, skip_input), 1)
         x = self.model(x)
-        x =  nn.functional.pad(x, (1,0,1,0,1,0))
+        x = nn.functional.pad(x, (1, 0, 1, 0, 1, 0))
 
         return x
+
 
 class UNetUp(nn.Module):
     def __init__(self, in_size, out_size, dropout=0.0):
         super(UNetUp, self).__init__()
+        print('Up: in_size: {} outside:{}'.format(in_size, out_size))
         layers = [
             nn.ConvTranspose3d(in_size, out_size, 4, 2, 1, bias=False),
             nn.InstanceNorm3d(out_size),
@@ -72,10 +73,10 @@ class UNetUp(nn.Module):
 
     def forward(self, x, skip_input):
         # print('new')
-        # print(x.shape)
-        # print(skip_input.shape)
+        print(x.shape)
+        print(skip_input.shape)
         x = self.model(x)
-        # print(x.shape)
+        print('after forward: {}'.format(x.shape))
         x = torch.cat((x, skip_input), 1)
 
         return x
@@ -84,7 +85,7 @@ class UNetUp(nn.Module):
 class GeneratorUNet(nn.Module):
     def __init__(self, in_channels=1, out_channels=1):
         super(GeneratorUNet, self).__init__()
-
+        print('gen: in_channel: {}'.format(in_channels))
         self.down1 = UNetDown(in_channels, 64, normalize=False)
         self.down2 = UNetDown(64, 128)
         self.down3 = UNetDown(128, 256)
@@ -93,9 +94,12 @@ class GeneratorUNet(nn.Module):
         self.mid2 = UNetMid(1024, 512, dropout=0.2)
         self.mid3 = UNetMid(1024, 512, dropout=0.2)
         self.mid4 = UNetMid(1024, 256, dropout=0.2)
-        self.up1 = UNetUp(256, 256)
-        self.up2 = UNetUp(512, 128)
-        self.up3 = UNetUp(256, 64)
+        # self.up1 = UNetUp(256, 256)
+        # self.up2 = UNetUp(512, 128)
+        # self.up3 = UNetUp(256, 64)
+        self.up1 = UNetUp(512, 256)
+        self.up2 = UNetUp(256, 128)
+        self.up3 = UNetUp(128, 64)
         # self.us =   nn.Upsample(scale_factor=2)
 
         self.final = nn.Sequential(
@@ -114,8 +118,8 @@ class GeneratorUNet(nn.Module):
         m1 = self.mid1(d4, d4)
         m2 = self.mid2(m1, m1)
         m3 = self.mid3(m2, m2)
-        m4 = self.mid4(m3, m3)
-        u1 = self.up1(m4, d3)
+        # m4 = self.mid4(m3, m3)
+        u1 = self.up1(m3, d3)
         u2 = self.up2(u1, d2)
         u3 = self.up3(u2, d1)
         # u7 = self.up7(u6, d1)
@@ -133,10 +137,12 @@ class GeneratorUNet(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, in_channels=1):
         super(Discriminator, self).__init__()
+        print('in_channels: {}'.format(in_channels))
 
         def discriminator_block(in_filters, out_filters, normalization=True):
             """Returns downsampling layers of each discriminator block"""
-            layers = [nn.Conv3d(in_filters, out_filters, 4, stride=2, padding=1)]
+            layers = [nn.Conv3d(in_filters, out_filters,
+                                4, stride=2, padding=1)]
             if normalization:
                 layers.append(nn.InstanceNorm3d(out_filters))
             layers.append(nn.LeakyReLU(0.2, inplace=True))
@@ -155,5 +161,5 @@ class Discriminator(nn.Module):
         # Concatenate image and condition image by channels to produce input
         img_input = torch.cat((img_A, img_B), 1)
         intermediate = self.model(img_input)
-        pad = nn.functional.pad(intermediate, pad=(1,0,1,0,1,0))
+        pad = nn.functional.pad(intermediate, pad=(1, 0, 1, 0, 1, 0))
         return self.final(pad)
