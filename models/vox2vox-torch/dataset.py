@@ -63,13 +63,20 @@ class BraTSDataset(Dataset):
         images = []
         mask = []
         sample = self.samples[index]
-        for idx in range(0, len(sample)-2):
+        print(len(sample))
+        for idx in range(0, len(sample)-1):
             modal = nib.load(sample[idx]).get_fdata(
                 dtype='float32', caching='unchanged')
+            # modal = np.swapaxes(modal, -1, 0)
             images.append(modal)
+            # print('id: {}'.format(sample[idx]))
         images = np.asarray(images)
 
         mask = nib.load(sample[len(sample)-1]).get_fdata(
             dtype='float32', caching='unchanged')
+        # mask = np.swapaxes(mask, -1, 0 )
+        mask = mask.reshape((1, mask.shape[0], mask.shape[1], mask.shape[2]))
+        # print('Images shape: {}'.format(images.shape))
+        # print('Mask shape: {}'.format(mask.shape))
 
         return {"A": images, "B": mask}

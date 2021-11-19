@@ -82,6 +82,7 @@ def train():
     os.makedirs("saved_models/%s" % opt.dataset_name, exist_ok=True)
 
     cuda = True if torch.cuda.is_available() else False
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # Loss functions
     criterion_GAN = torch.nn.MSELoss()
@@ -95,10 +96,8 @@ def train():
              2 ** 4, opt.img_depth // 2 ** 4)
 
     # Initialize generator and discriminator
-    generator = GeneratorUNet(in_channels=opt.channels,
-                              out_channels=opt.channels)
-    discriminator = Discriminator(
-        in_channels=opt.channels, out_channels=out_channels)
+    generator = GeneratorUNet(in_channels=opt.channels)
+    discriminator = Discriminator(in_channels=5)
 
     if cuda:
         generator = generator.cuda()
@@ -184,6 +183,11 @@ def train():
             # Model inputs
             real_A = Variable(torch.as_tensor(batch["A"]))
             real_B = Variable(torch.as_tensor(batch["B"]))
+            real_A = real_A.to(device)
+            real_B = real_B.to(device)
+
+            # real_A = Variable(Tensor(batch['A'], device = 'cuda'))
+            # real_B = Variable(Tensor(batch['B']))
 
             # Adversarial ground truths
             valid = Variable(
@@ -200,7 +204,7 @@ def train():
             loss_real = criterion_GAN(pred_real, valid)
 
             # Fake loss
-            pred_fake = discriminator(fake_B.detach(), real_A)
+            pred_fake = discriminator(fake_B, real_A)
             loss_fake = criterion_GAN(pred_fake, fake)
             # Total loss
             loss_D = 0.5 * (loss_real + loss_fake)
@@ -280,18 +284,19 @@ def train():
                           time_left,
                       ))
             # If at sample interval save image
-            if batches_done % (opt.sample_interval*len(dataloader)) == 0:
-                sample_voxel_volumes(epoch)
-                print('*****volumes sampled*****')
+
+            # if batches_done % (opt.sample_interval*len(dataloader)) == 0:
+            #     sample_voxel_volumes(epoch)
+            #     print('*****volumes sampled*****')
 
             discriminator_update = 'False'
 
         if opt.checkpoint_interval != -1 and epoch % opt.checkpoint_interval == 0:
             # Save model checkpoints
             torch.save(generator.state_dict(
-            ), "saved_models/%s/generator_%d.pth" % (opt.dataset_name, epoch))
+            ), "saved_models/%d/generator.pth" % (epoch))
             torch.save(discriminator.state_dict(
-            ), "saved_models/%s/discriminator_%d.pth" % (opt.dataset_name, epoch))
+            ), "saved_models/%d/discriminator.pth" % (epoch))
 
 
 if __name__ == '__main__':
