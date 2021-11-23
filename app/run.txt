@@ -1,0 +1,1 @@
+python ./visualizer/brain_tumor_3d.py -i "./sample_data/BraTS2021_00000_t2.nii.gz" -m "./sample_data/BraTS2021_00000_seg.nii.gz"
