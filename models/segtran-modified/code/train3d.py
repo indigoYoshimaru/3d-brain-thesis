@@ -649,6 +649,8 @@ if __name__ == "__main__":
                              worker_init_fn=worker_init_fn)
 
     max_epoch = math.ceil(args.maxiter / len(trainloader))
+    print('MAX EPOCH: {}'.format(max_epoch))
+    print('Len data loader: {}'.format(len(trainloader)))
 
     if args.chosen_modality == -1:
         args.orig_in_channels = db_trains[0].num_modalities
