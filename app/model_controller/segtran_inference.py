@@ -1,11 +1,13 @@
 
+
 import sys
 import torch
+import torch.nn.functional as F
 import os
 import argparse
 import copy
 import nibabel as nib
-import numpy as np 
+import numpy as np
 
 
 # from ...models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
@@ -88,14 +90,52 @@ def load_model(path):
     net = Segtran3d(CONFIG)
     net = load_model_state(net, args, path)
     print(net)
+    return net
 
 
-def to_tensor():
-    ...
+def transform(sample):
+    image = sample['image']
+    mask = sample['mask']
+    if image.ndim == 3:
+        image = image.reshape((1,) + image.shape)
+    return {'image': torch.from_numpy(image),
+            'mask':  torch.from_numpy(mask)}
 
 
-def process_input(input_list):
+def process_input(img_dir, image_mods, input_patch_size=[112, 112, 96], orig_patch_size=(112, 112, 96)):
     """Process """
+    image_mm = np.stack(image_mods, axis=0)
+    MOD, H, W, D = image_shape = image_mm.shape
+    # create fake labels (temporary)
+    labels = np.zeros_like(image_mods[0]).astype(np.uint8)
+    tempL = np.nonzero(image_mm)
+    # Find the boundary of non-zero voxels
+    minx, maxx = np.min(tempL[1]), np.max(tempL[1])
+    miny, maxy = np.min(tempL[2]), np.max(tempL[2])
+    minz, maxz = np.min(tempL[3]), np.max(tempL[3])
+    image_crop = image_mm[:, minx:maxx, miny:maxy, minz:maxz]
+    nonzero_mask = (image_mm > 0)
+    for m in range(MOD):
+        image_mod = image_mm[m, :, :, :]
+        image_mod_crop = image_crop[m, :, :, :]
+        nonzero_voxels = image_mod_crop[image_mod_crop > 0]
+        mean = nonzero_voxels.mean()
+        std = nonzero_voxels.std()
+        image_mm[m, :, :, :] = (image_mod - mean) / std
+
+    # Set voxels back to 0 if they are 0 before normalization.
+    image_mm *= nonzero_mask
+
+    print("\n%s: %s => %s, %s" %
+          (img_dir, image_shape, image_mm.shape, labels.shape))
+
+    sample = {'image': image_mm, 'mask': labels}
+    sample = transform(sample)
+    test_batch = torch.stack([sample['image']], dim=0)
+    test_batch = F.interpolate(test_batch, size=input_patch_size,
+                  mode='trilinear', align_corners=False)
+    print("Test Batch shape: {}".format(test_batch.shape))
+    return test_batch
 
 
 def load_brats_data(brain_path):
@@ -107,7 +147,7 @@ def load_brats_data(brain_path):
     modalities = ['flair', 't1ce', 't1', 't2']
     # read all files in head that has modalities
     img_mods = []
-    for mod in modalities: 
+    for mod in modalities:
         file_name = '{}{}.nii.gz'.format(path_head, mod)
         print(file_name)
         nib_obj = nib.load(file_name)
@@ -115,10 +155,18 @@ def load_brats_data(brain_path):
         img_mods.append(image.astype(np.float32))
         print(np.count_nonzero(image.astype(np.float32)))
     # process and transform
+    sample = process_input(brain_path, img_mods)
+    return sample
+
+
+def inference(net, sample):
+    ...
 
 
 if __name__ == '__main__':
     path = 'app/model_controller/weights/segtran_iter_81500.pth'
-    load_model(path)
-    load_brats_data(
+    net = load_model(path)
+    sample = load_brats_data(
         'app/data/sample/BraTS2021_00000/BraTS2021_00000_flair.nii.gz')
+    pred = net(sample)
+    print('PREDICTED:{}'.format(pred))

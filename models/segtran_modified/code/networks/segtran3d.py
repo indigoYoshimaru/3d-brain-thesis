@@ -560,8 +560,8 @@ class Segtran3d(SegtranInitWeights):
             print("\nFeat: %s, Voxels: %s. Model DHW scales: %dx%dx%d. Total scales: %s" %
                   (list(xyz_shape), list(vfeat_fpn.shape), model_scale_D, model_scale_H, model_scale_W, total_pos_scale))
             self.scales_printed = True
-
-        scale = torch.tensor([total_pos_scale], device='cuda')
+        curr_dev = 'cpu'
+        scale = torch.tensor([total_pos_scale], device=curr_dev)
         # xyz_indices: [3920, 3].
         # Rectify the scales on H, W, D. The indices now are pixel coordinates in the original input image.
         xyz_indices = xyz_indices.view([-1, 3]).float() * scale
