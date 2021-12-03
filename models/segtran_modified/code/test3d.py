@@ -277,8 +277,6 @@ else:
     args.translayer_compress_ratios = [
         1 for layer in range(args.num_translayers + 1)]
 
-print(args)
-
 
 def load_model(net, args, checkpoint_path):
     state_dict = torch.load(

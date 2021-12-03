@@ -1,28 +1,34 @@
+
 import sys
 import torch
 import os
 import argparse
 import copy
+import nibabel as nib
+import numpy as np 
+
 
 # from ...models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
 
 # testing
 sys_dir = '/mnt/d/2122sem1/pre_thesis/brain-reconstruction/code/thesis-study/'
 sys.path.append(os.path.dirname(sys_dir))
-from app.utils.config import *
+print(sys.path)
 from models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
+from app.utils.config import *
 
 def convert_args(args):
     parser = argparse.ArgumentParser()
     new_args = parser.parse_args()
-    for key, value in args.items(): 
-        new_args.__dict__[key]=value
+    for key, value in args.items():
+        new_args.__dict__[key] = value
     return new_args
+
 
 def load_model_state(net, args, checkpoint_path):
     state_dict = torch.load(
-    checkpoint_path, map_location=torch.device(args.device))
-    state_dict['args']['device']=args.device
+        checkpoint_path, map_location=torch.device(args.device))
+    state_dict['args']['device'] = args.device
     params = net.state_dict()
     if 'model' in state_dict:
         model_state_dict = state_dict['model']
@@ -66,7 +72,8 @@ def load_model_state(net, args, checkpoint_path):
     net.load_state_dict(params)
     return net
 
-def load_model(path: str):
+
+def load_model(path):
     """
     Load model 
     """
@@ -74,7 +81,7 @@ def load_model(path: str):
     # checkpoint = torch.load(path, map_loc)
     # checkpoint['args']['device']='cpu'
     # print('CHECKPOINT: \n', checkpoint['args']['device'])
-    args = convert_args(segtran_config)    
+    args = convert_args(segtran_config)
     print(args.device)
 
     set_segtran3d_config(args)
@@ -83,6 +90,35 @@ def load_model(path: str):
     print(net)
 
 
+def to_tensor():
+    ...
+
+
+def process_input(input_list):
+    """Process """
+
+
+def load_brats_data(brain_path):
+    """
+    Load all modalities in brain_path. We visualize 1 mode, but need 4 of them to perform segmentation 
+    """
+    # load head
+    path_head = brain_path.replace(brain_path.split('_')[-1], '')
+    modalities = ['flair', 't1ce', 't1', 't2']
+    # read all files in head that has modalities
+    img_mods = []
+    for mod in modalities: 
+        file_name = '{}{}.nii.gz'.format(path_head, mod)
+        print(file_name)
+        nib_obj = nib.load(file_name)
+        image = nib_obj.get_fdata()
+        img_mods.append(image.astype(np.float32))
+        print(np.count_nonzero(image.astype(np.float32)))
+    # process and transform
+
+
 if __name__ == '__main__':
-    path = '/mnt/d/2122sem1/pre_thesis/brain-reconstruction/code/thesis-study/app/model_controller/weights/segtran-51000-iteration.pth'
+    path = 'app/model_controller/weights/segtran_iter_81500.pth'
     load_model(path)
+    load_brats_data(
+        'app/data/sample/BraTS2021_00000/BraTS2021_00000_flair.nii.gz')
