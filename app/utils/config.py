@@ -16,7 +16,7 @@ MASK_COLORS = [(1, 0, 0),
                (0.5, 1, 0.5),
                (0.5, 0.5, 1)]  # RGB percentages
 MASK_OPACITY = 1.0
-
+MODEL_PATH = 'app/model_controller/weights/segtran_iter_81500.pth'
 # model config
 
 model_config = {

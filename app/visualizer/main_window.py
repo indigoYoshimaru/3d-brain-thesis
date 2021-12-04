@@ -9,6 +9,7 @@ import vtk
 from utils.config import *
 from visualizer.file_dialog import FileDialog
 from handlers.file_reader import FileReader
+from model_controller import segtran_inference
 
 file_reader = FileReader()
 #
@@ -22,6 +23,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         """ Initialize UI components and show"""
         QtWidgets.QMainWindow.__init__(self, None)
         self.mask_file = ""
+        self.brain_file = ""
         self.brain_loaded = False
         self.slicer_widgets = []
         self.file_dialog = FileDialog()
@@ -212,7 +214,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.renderer.Render()
 
     def segment_mask(self):
-        ...
+        segtran_inference(self.app.args, self.app.net, self.brain_file)
 
     def predict_growth(self):
         ...
