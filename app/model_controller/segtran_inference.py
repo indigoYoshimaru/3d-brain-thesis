@@ -14,6 +14,7 @@ import math
 from models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
 from app.utils.config import *
 
+
 def convert_args(args):
     parser = argparse.ArgumentParser()
     new_args = parser.parse_args()
@@ -41,6 +42,7 @@ def brats_inv_map_label(orig_probs):
         pdb.set_trace()
 
     return inv_probs
+
 
 def make_brats_pred_consistent(preds_soft, is_conservative):
     # is_conservative: predict 0 as much as it can.
@@ -288,6 +290,7 @@ def inference_and_save(args, net, brain_path):
     save_path = '{}pred.nii.gz'.format(path_head)
     nib.save(nib.Nifti1Image(preds_hard_np.astype(
         np.float32), np.eye(4)), save_path)
+    return save_path
 
 
 # if __name__ == '__main__':

@@ -14,14 +14,18 @@ class FileReader:
         mask.reader = read_volume(mask.file)
         mask.extent = mask.reader.GetDataExtent()
         n_labels = int(mask.reader.GetOutput().GetScalarRange()[1])
+        print(n_labels)
         # n_labels = n_labels if n_labels <= 10 else 10
-
+        print(mask.file)
+        print(mask.reader)
+        print(mask.extent)
         for label_idx in range(n_labels):
             mask.labels.append(
                 NiiLabel(MASK_COLORS[label_idx], MASK_OPACITY, MASK_SMOOTHNESS))
             mask.labels[label_idx].extractor = create_mask_extractor(mask)
             add_surface_rendering(mask, label_idx, label_idx + 1)
             self._renderer.AddActor(mask.labels[label_idx].actor)
+        # remap labels
         return mask
 
     def read_brain(self, file_name):

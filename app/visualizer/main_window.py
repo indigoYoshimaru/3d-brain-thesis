@@ -19,7 +19,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
     """
     """
 
-    def __init__(self, app):
+    def __init__(self, app, net_args, net):
         """ Initialize UI components and show"""
         QtWidgets.QMainWindow.__init__(self, None)
         self.mask_file = ""
@@ -27,6 +27,9 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.brain_loaded = False
         self.slicer_widgets = []
         self.file_dialog = FileDialog()
+        self.app = app
+        self.net_args = net_args
+        self.net = net
 
         self.mask_opacity_sp = self.create_new_picker(
             1.0, 0.0, 0.1, MASK_OPACITY, self.mask_opacity_vc)
@@ -132,14 +135,16 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
         mask_settings_group_box.setLayout(mask_settings_layout)
         self.grid.addWidget(mask_settings_group_box, 2, 0, 2, 2)
+        self.reset_mask_check()
 
+    def reset_mask_check(self):
         if self.mask_file:
             for i, cb in enumerate(self.mask_label_cbs):
                 if i < len(self.mask.labels) and self.mask.labels[i].actor:
-                    cb.setChecked(True)
+                    cb.setChecked(self.mask_file != "")
                     cb.clicked.connect(self.mask_label_checked)
                 else:
-                    cb.setDisabled(True)
+                    cb.setDisabled(self.mask_file != "")
 
     def add_view_settings_widget(self):
         """ add option to choose view """
@@ -189,13 +194,13 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
     # FUNCTION SETTINGS
     def load_brain_file(self):
         # if self.brain
-        brain_file = self.file_dialog.get_nii_dir()
+        self.brain_file = self.file_dialog.get_nii_dir()
         if self.brain_loaded:
             self.renderer.RemoveAllViewProps()
             self.reset_slicers()
 
         file_reader.renderer = self.renderer
-        self.brain = file_reader.read_brain(brain_file)
+        self.brain = file_reader.read_brain(self.brain_file)
         self.brain_slicer_props = file_reader.setup_slice(self.brain)
         self.renderer = file_reader.renderer
         self.set_axial_view()
@@ -206,15 +211,18 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.renderer.Render()
 
     def load_mask_file(self):
-        mask_file = self.file_dialog.get_nii_dir()
+        self.mask_file = self.file_dialog.get_nii_dir()
         file_reader.renderer = self.renderer
-        self.mask = file_reader.read_mask(mask_file)
+        self.mask = file_reader.read_mask(self.mask_file)
+        self.reset_mask_check()
         # checkbox error here
         self.renderer = file_reader.renderer
         self.renderer.Render()
 
     def segment_mask(self):
-        segtran_inference(self.app.args, self.app.net, self.brain_file)
+        self.mask_file = segtran_inference.inference_and_save(
+            self.net_args, self.net, self.brain_file)
+        self.mask = file_reader.read_mask(self.mask_file)
 
     def predict_growth(self):
         ...
@@ -256,7 +264,13 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.render_window.Render()
 
     def mask_label_checked(self):
-        ...
+        for i, cb in enumerate(self.mask_label_cbs):
+            if cb.isChecked():
+                self.mask.labels[i].property.SetOpacity(
+                    self.mask_opacity_sp.value())
+            elif cb.isEnabled():  # labels without data are disabled
+                self.mask.labels[i].property.SetOpacity(0)
+        self.render_window.Render()
 
     # VIEWS SETTINGS
     def set_axial_view(self):
