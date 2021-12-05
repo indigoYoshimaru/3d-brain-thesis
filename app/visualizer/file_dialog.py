@@ -7,8 +7,8 @@ class FileDialog(QWidget):
     def __init__(self):
         super().__init__()
         self.title = 'Open file'
-        self.left = 10
-        self.top = 10
+        self.left = 2000
+        self.top = 20
         self.width = 640
         self.height = 480
 

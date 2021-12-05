@@ -124,14 +124,13 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         mask_settings_layout.addWidget(self.create_new_separator(), 2, 0, 1, 3)
 
         self.mask_label_cbs = []
-        brats_mask_labels = ['Whole tumor', 'Enhance tumor core', 'Tumor core']
+        brats_mask_labels = ['Necrosis',
+                             'Edema/Invasion', 'Enhancing tumor']
         for i in range(0, 3):
             self.mask_label_cbs.append(
                 QtWidgets.QCheckBox(brats_mask_labels[i]))
             mask_settings_layout.addWidget(
                 self.mask_label_cbs[i], 3, i)
-            # c_row = c_row + 1 if c_col == 1 else c_row
-            # c_col = 0 if c_col == 1 else 1
 
         mask_settings_group_box.setLayout(mask_settings_layout)
         self.grid.addWidget(mask_settings_group_box, 2, 0, 2, 2)
