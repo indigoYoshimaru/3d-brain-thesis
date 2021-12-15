@@ -291,9 +291,3 @@ def inference_and_save(args, net, brain_path):
     nib.save(nib.Nifti1Image(preds_hard_np.astype(
         np.float32), np.eye(4)), save_path)
     return save_path
-
-
-# if __name__ == '__main__':
-#     args, net = load_model(MODEL_PATH)
-#     inference_and_save(
-#         args, net, 'app/data/sample/BraTS2021_00000/BraTS2021_00000_flair.nii.gz')
