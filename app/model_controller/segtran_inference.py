@@ -8,9 +8,9 @@ import nibabel as nib
 import numpy as np
 import math
 
-# sys_dir = '/mnt/d/2122sem1/pre_thesis/brain-reconstruction/code/thesis-study/'
-# sys.path.append(os.path.dirname(sys_dir))
-# print(sys.path)
+sys_dir = 'D:\\2122sem1\\pre_thesis\\brain-reconstruction\\code\\3d-brain-thesis'
+sys.path.append(os.path.dirname(sys_dir))
+print(sys.path)
 from models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
 from app.utils.config import *
 
