@@ -7,6 +7,7 @@ import PyQt5.QtCore as Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import vtk
 from utils.config import *
+from objects.mask_object import MaskVisual
 from visualizer.file_dialog import FileDialog
 from handlers.file_reader import FileReader
 from model_controller import segtran_inference
@@ -24,7 +25,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         QtWidgets.QMainWindow.__init__(self, None)
         self.mask_file = ""
         self.brain_file = ""
-        # create a mask dict to handel multiple mask-> loaded, segmented, and predicted
+        # create a mask dict to handel multiple mask-> load, segment, and predict
         self.mask_dict = dict()
         self.brain_loaded = False
         self.slicer_widgets = []
@@ -123,8 +124,17 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         mask_settings_layout.addWidget(self.mask_opacity_sp, 0, 2)
         mask_settings_layout.addWidget(self.mask_smoothness_sp, 1, 2)
 
+        mask_settings_layout.addWidget(
+            QtWidgets.QLabel("Current mask type"), 3, 0)
+        mask_types = ['load', 'segment', 'predict']
+        self.combox_widget = QtWidgets.QComboBox()
+        self.combox_widget.addItems(mask_types)
+        self.combox_widget.currentIndexChanged.connect(self.set_current_mask)
+        mask_settings_layout.addWidget(self.combox_widget, 3, 1)
         mask_settings_layout.addWidget(self.create_new_separator(), 2, 0, 1, 3)
 
+        mask_settings_layout.addWidget(
+            QtWidgets.QLabel("Mask Labels"), 4, 0)
         self.mask_label_cbs = []
         brats_mask_labels = ['Necrosis',
                              'Edema/Invasion', 'Enhancing tumor']
@@ -132,20 +142,31 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             self.mask_label_cbs.append(
                 QtWidgets.QCheckBox(brats_mask_labels[i]))
             mask_settings_layout.addWidget(
-                self.mask_label_cbs[i], 3, i)
+                self.mask_label_cbs[i], 5, i)
 
         mask_settings_group_box.setLayout(mask_settings_layout)
         self.grid.addWidget(mask_settings_group_box, 2, 0, 2, 2)
         self.reset_mask_check()
 
     def reset_mask_check(self):
-        if self.mask_file:
+        mask_visual = self.mask_dict.get('load')
+
+        if mask_visual:
+            mask = mask_visual.mask
             for i, cb in enumerate(self.mask_label_cbs):
                 if i < len(self.mask.labels) and self.mask.labels[i].actor:
-                    cb.setChecked(self.mask_file != "")
+                    cb.setChecked(mask_visual != None)
                     cb.clicked.connect(self.mask_label_checked)
                 else:
-                    cb.setDisabled(self.mask_file != "")
+                    cb.setDisabled(not mask_visual)
+
+    def set_current_mask(self):
+        mtype = self.combox_widget.currentText()
+        print(mtype)
+        mask_visual = self.mask_dict.get(mtype)
+        self.mask = mask_visual.mask
+        self.mask_opacity_sp = mask_visual.opacity_pk
+        self.mask_smoothness_sp = mask_visual.smoothness_pk
 
     def add_view_settings_widget(self):
         """ add option to choose view """
@@ -192,7 +213,19 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.grid.addWidget(object_group_box, 0, 2, 12, 8)
         self.grid.setColumnMinimumWidth(2, 700)
 
+    def add_new_mask(self, mtype, mask):
+        # reset picker
+        opac_pk = self.reset_picker(
+            self.mask_opacity_sp, 1.0, 0.0, 0.1, MASK_OPACITY)
+
+        smooth_pk = self.reset_picker(
+            self.mask_smoothness_sp, 1000, 100, 100, MASK_SMOOTHNESS)
+
+        mask_visual = MaskVisual(mask, opac_pk, smooth_pk)
+        self.mask_dict[mtype] = mask_visual
+
     # FUNCTION SETTINGS
+
     def load_brain_file(self):
         # read the directory -> save brain file for segmentation
         brain_file = self.file_dialog.get_nii_dir()
@@ -219,25 +252,30 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             return
         self.mask_file = mask_file
         file_reader.renderer = self.renderer
-        mask = file_reader.read_mask(self.mask_file)
-        self.mask_dict['loaded'] = mask
+        mask_type = 'load'
+        mask = file_reader.read_mask(self.mask_file, mask_type)
+        self.add_new_mask(mask_type, mask)
         self.mask = mask
-
         self.reset_mask_check()
         # checkbox error here
         self.renderer = file_reader.renderer
         self.renderer.Render()
 
     def segment_mask(self):
-        mask_file = segtran_inference.inference_and_save(
-            self.net_args, self.net, self.brain_file)
-        mask = file_reader.read_mask(mask_file)
-        self.mask_dict['segmented'] = mask
+        # mask_file = segtran_inference.inference_and_save(
+        #     self.net_args, self.net, self.brain_file)
+
+        # temp
+        mask_file = 'app/data/sample/BraTS2021_00006/BraTS2021_00006_seg.nii.gz'
+        mask_type = 'segment'
+        mask = file_reader.read_mask(mask_file, mask_type)
+        self.add_new_mask(mask_type, mask)
 
     def predict_growth(self):
-        ...
-        # self.mask_dict['predict'] = mask
-
+        mask_file = 'E:/temp_dataset/Growth-pred/BRATS2015_Training/copied/niftiis/brats_tcia_pat447_0313/VSD.Brain_3more.XX.O.OT.42781.nii.gz'
+        mask_type = 'predict'
+        mask = file_reader.read_mask(mask_file, mask_type)
+        self.add_new_mask(mask_type, mask)
     # BRAIN SETTINGS
 
     def brain_axial_slice_changed(self):
@@ -284,6 +322,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.render_window.Render()
 
     # VIEWS SETTINGS
+
     def set_axial_view(self):
         self.renderer.ResetCamera()
         fp = self.renderer.GetActiveCamera().GetFocalPoint()
@@ -338,6 +377,14 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         picker.setSingleStep(step)
         picker.setValue(picker_value)
         picker.valueChanged.connect(value_changed_func)
+        return picker
+
+    @staticmethod
+    def reset_picker(picker, max_value, min_value, step, picker_value):
+        picker.setMaximum(max_value)
+        picker.setMinimum(min_value)
+        picker.setSingleStep(step)
+        picker.setValue(picker_value)
         return picker
 
     def process_changes(self):

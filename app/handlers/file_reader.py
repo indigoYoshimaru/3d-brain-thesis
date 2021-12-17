@@ -8,7 +8,7 @@ class FileReader:
     def __init__(self):
         self._renderer = None
 
-    def read_mask(self, file_name):
+    def read_mask(self, file_name, mask_type):
         mask = NiiObject()
         mask.file = file_name
         mask.reader = read_volume(mask.file)
@@ -17,7 +17,7 @@ class FileReader:
 
         for label_idx in range(n_labels):
             mask.labels.append(
-                NiiLabel(MASK_COLORS[label_idx], MASK_OPACITY, MASK_SMOOTHNESS))
+                NiiLabel(MASK_COLORS.get(mask_type)[label_idx], MASK_OPACITY, MASK_SMOOTHNESS))
             mask.labels[label_idx].extractor = create_mask_extractor(mask)
             add_surface_rendering(mask, label_idx, label_idx + 1)
             self._renderer.AddActor(mask.labels[label_idx].actor)
