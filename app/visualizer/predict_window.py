@@ -10,6 +10,8 @@ from utils.config import *
 from visualizer.file_dialog import FileDialog
 from handlers.file_reader import FileReader
 from model_controller import segtran_inference
+from vtkmodules.vtkRenderingCore import vtkActor, vtkPolyDataMapper, vtkRenderWindow, vtkRenderWindowInteractor, vtkRenderer
+
 
 file_reader = FileReader()
 #
@@ -24,6 +26,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         QtWidgets.QMainWindow.__init__(self, None)
         self.mask_file = ""
         self.brain_file = ""
+        self.timepoint = 2
         self.brain_loaded = False
         self.slicer_widgets = []
         self.file_dialog = FileDialog()
@@ -40,11 +43,13 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         # set layout and show
         self.setup_vtk()
         self.setup_ui_component()
-        self.render_window.Render()
+        for window in self.render_windows: 
+            window.Render()
         self.setWindowTitle(APPLICATION_TITLE)
         self.frame.setLayout(self.grid)
         self.setCentralWidget(self.frame)
-        self.interactor.Initialize()
+        for iren in self.interactors: 
+            iren.Initialize()
         self.show()
 
     def setup_ui_component(self):
@@ -60,18 +65,44 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
     def setup_vtk(self):
         """ set up vtk """
-        renderer = vtk.vtkRenderer()
-        vtk_widget = QVTKRenderWindowInteractor()
-        interactor = vtk_widget.GetRenderWindow().GetInteractor()
-        render_window = vtk_widget.GetRenderWindow()
+        # renderer = vtk.vtkRenderer()
+        # vtk_widget = QVTKRenderWindowInteractor()
+        # interactor = vtk_widget.GetRenderWindow().GetInteractor()
+        # render_window = vtk_widget.GetRenderWindow()
 
-        vtk_widget.GetRenderWindow().AddRenderer(renderer)
-        render_window.AddRenderer(renderer)
-        interactor.SetRenderWindow(render_window)
-        interactor.SetInteractorStyle(
-            vtk.vtkInteractorStyleTrackballCamera())
+        # vtk_widget.GetRenderWindow().AddRenderer(renderer)
+        # render_window.AddRenderer(renderer)
+        # interactor.SetRenderWindow(render_window)
+        # interactor.SetInteractorStyle(
+        #     vtk.vtkInteractorStyleTrackballCamera())
+        interactors=[]
+        render_windows =[]
+        vtk_widgets = []
+        renderers = []
+        for i in range(self.timepoint): 
+            
+            renderer = vtkRenderer()
+            vtk_widget = QVTKRenderWindowInteractor()
+            iren = vtk_widget.GetRenderWindow().GetInteractor()
+            render_window = vtk_widget.GetRenderWindow()
+            if i == 0:
+                camera = renderer.GetActiveCamera()
+                camera.Azimuth(30)
+                camera.Elevation(30)
+            else:
+                renderer.SetActiveCamera(camera)
+            
+            render_window.AddRenderer(renderer)
+            iren.SetRenderWindow(render_window)
+            iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            
+            
+            render_windows.append(render_window)
+            interactors.append(iren)
+            vtk_widgets.append(vtk_widget)
+            renderers.append(renderers)
 
-        self.renderer, self.vtk_widget, self.interactor, self.render_window = renderer, vtk_widget, interactor, render_window
+        self.renderer, self.vtk_widgets, self.interactors, self.render_windows = renderer, vtk_widgets, interactors, render_windows
 
     def add_brain_settings_widget(self):
         """ add settings for brain settings group"""
@@ -185,21 +216,20 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
         object_group_box = QtWidgets.QGroupBox()
         object_layout = QtWidgets.QVBoxLayout()
-        object_layout.addWidget(self.vtk_widget)
+        for wid in self.vtk_widgets: 
+            object_layout.addWidget(wid)
         object_group_box.setLayout(object_layout)
         self.grid.addWidget(object_group_box, 0, 2, 12, 8)
         self.grid.setColumnMinimumWidth(2, 700)
 
     # FUNCTION SETTINGS
     def load_brain_file(self):
-        # read the directory -> save brain file for segmentation
-        brain_file = self.file_dialog.get_nii_dir()
-        if not brain_file: 
-            return  
+        # if self.brain
+        self.brain_file = self.file_dialog.get_nii_dir()
         if self.brain_loaded:
             self.renderer.RemoveAllViewProps()
             self.reset_slicers()
-        self.brain_file = brain_file
+
         file_reader.renderer = self.renderer
         self.brain = file_reader.read_brain(self.brain_file)
         self.brain_slicer_props = file_reader.setup_slice(self.brain)
@@ -210,13 +240,9 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             self.brain_loaded = True
 
         self.renderer.Render()
-    
-    
+
     def load_mask_file(self):
-        mask_file = self.file_dialog.get_nii_dir()
-        if not mask_file: 
-            return 
-        self.mask_file = mask_file
+        self.mask_file = self.file_dialog.get_nii_dir()
         file_reader.renderer = self.renderer
         self.mask = file_reader.read_mask(self.mask_file)
         self.reset_mask_check()

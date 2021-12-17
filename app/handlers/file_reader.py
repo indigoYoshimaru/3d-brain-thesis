@@ -16,6 +16,7 @@ class FileReader:
         n_labels = int(mask.reader.GetOutput().GetScalarRange()[1])
 
         for label_idx in range(n_labels):
+            print(label_idx)
             mask.labels.append(
                 NiiLabel(MASK_COLORS[label_idx], MASK_OPACITY, MASK_SMOOTHNESS))
             mask.labels[label_idx].extractor = create_mask_extractor(mask)
