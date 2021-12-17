@@ -150,6 +150,8 @@ def create_table():
 
 
 def add_surface_rendering(nii_object, label_idx, label_value):
+    if label_idx == 2:
+        return
     nii_object.labels[label_idx].extractor.SetValue(0, label_value)
     nii_object.labels[label_idx].extractor.Update()
 

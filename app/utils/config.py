@@ -16,10 +16,12 @@ MASK_SMOOTHNESS = 500
 #                (0.5, 1, 0.5),
 #                (0.5, 0.5, 1)]  # RGB percentages
 
-MASK_COLORS = [(1, 0, 0),
-               (0, 1, 0),
-               (1, 1, 0),
-               (0, 0, 1)]
+# MASK_COLORS = {'loaded': [(1, 0, 0), (0, 1, 0), (1, 1, 0), (0, 0, 1)],
+#                'segmented': [(1, 0, 1),(0, 1, 1),(1, 0.5, 0.5),],
+#                'predicted': []}
+
+MASK_COLORS = [(1, 0, 0), (0, 1, 0), (1, 1, 0), (0, 0, 1)]
+
 MASK_OPACITY = 1.0
 MODEL_PATH = 'app/model_controller/weights/segtran_iter_81500.pth'
 # model config

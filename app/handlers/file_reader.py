@@ -16,16 +16,17 @@ class FileReader:
         n_labels = int(mask.reader.GetOutput().GetScalarRange()[1])
 
         for label_idx in range(n_labels):
-            print(label_idx)
             mask.labels.append(
                 NiiLabel(MASK_COLORS[label_idx], MASK_OPACITY, MASK_SMOOTHNESS))
             mask.labels[label_idx].extractor = create_mask_extractor(mask)
             add_surface_rendering(mask, label_idx, label_idx + 1)
             self._renderer.AddActor(mask.labels[label_idx].actor)
         # remap labels
-        for item in mask.labels:
-            if not item.actor:
-                mask.labels.remove(item)
+        # for item in mask.labels:
+        #     if not item.actor:
+        #         mask.labels.remove(item)
+        del mask.labels[2]
+        print(len(mask.labels))
 
         return mask
 

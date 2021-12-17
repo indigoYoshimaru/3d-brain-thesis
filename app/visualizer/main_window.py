@@ -24,6 +24,8 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         QtWidgets.QMainWindow.__init__(self, None)
         self.mask_file = ""
         self.brain_file = ""
+        # create a mask dict to handel multiple mask-> loaded, segmented, and predicted
+        self.mask_dict = dict()
         self.brain_loaded = False
         self.slicer_widgets = []
         self.file_dialog = FileDialog()
@@ -194,8 +196,8 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
     def load_brain_file(self):
         # read the directory -> save brain file for segmentation
         brain_file = self.file_dialog.get_nii_dir()
-        if not brain_file: 
-            return  
+        if not brain_file:
+            return
         if self.brain_loaded:
             self.renderer.RemoveAllViewProps()
             self.reset_slicers()
@@ -210,27 +212,31 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             self.brain_loaded = True
 
         self.renderer.Render()
-    
-    
+
     def load_mask_file(self):
         mask_file = self.file_dialog.get_nii_dir()
-        if not mask_file: 
-            return 
+        if not mask_file:
+            return
         self.mask_file = mask_file
         file_reader.renderer = self.renderer
-        self.mask = file_reader.read_mask(self.mask_file)
+        mask = file_reader.read_mask(self.mask_file)
+        self.mask_dict['loaded'] = mask
+        self.mask = mask
+
         self.reset_mask_check()
         # checkbox error here
         self.renderer = file_reader.renderer
         self.renderer.Render()
 
     def segment_mask(self):
-        self.mask_file = segtran_inference.inference_and_save(
+        mask_file = segtran_inference.inference_and_save(
             self.net_args, self.net, self.brain_file)
-        self.mask = file_reader.read_mask(self.mask_file)
+        mask = file_reader.read_mask(mask_file)
+        self.mask_dict['segmented'] = mask
 
     def predict_growth(self):
         ...
+        # self.mask_dict['predict'] = mask
 
     # BRAIN SETTINGS
 
