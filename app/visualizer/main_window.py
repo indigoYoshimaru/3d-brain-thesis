@@ -262,17 +262,17 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.renderer.Render()
 
     def segment_mask(self):
-        # mask_file = segtran_inference.inference_and_save(
-        #     self.net_args, self.net, self.brain_file)
+        mask_file = segtran_inference.inference_and_save(
+            self.net_args, self.net, self.brain_file)
 
         # temp
-        mask_file = 'app/data/sample/BraTS2021_00006/BraTS2021_00006_seg.nii.gz'
         mask_type = 'segment'
         mask = file_reader.read_mask(mask_file, mask_type)
         self.add_new_mask(mask_type, mask)
 
     def predict_growth(self):
-        mask_file = 'E:/temp_dataset/Growth-pred/BRATS2015_Training/copied/niftiis/brats_tcia_pat447_0313/VSD.Brain_3more.XX.O.OT.42781.nii.gz'
+        # havent been implemented
+        mask_file = ''
         mask_type = 'predict'
         mask = file_reader.read_mask(mask_file, mask_type)
         self.add_new_mask(mask_type, mask)
