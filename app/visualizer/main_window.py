@@ -161,6 +161,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
                     cb.setDisabled(not mask_visual)
 
     def set_current_mask(self):
+
         mtype = self.combox_widget.currentText()
         print(mtype)
         mask_visual = self.mask_dict.get(mtype)
@@ -266,6 +267,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             self.net_args, self.net, self.brain_file)
 
         # temp
+        # mask_file = 'app/data/sample/BraTS2021_00000/BraTS2021_00000_pred.nii.gz'
         mask_type = 'segment'
         mask = file_reader.read_mask(mask_file, mask_type)
         self.add_new_mask(mask_type, mask)
