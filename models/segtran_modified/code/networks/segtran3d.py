@@ -151,7 +151,7 @@ def set_segtran3d_config(args):
     CONFIG.input_scale = args.input_scale
 
     # CONFIG.device = args.device
-    CONFIG.device = 'cpu'
+    CONFIG.device = 'cuda'
     if 'eval_robustness' in args:
         CONFIG.eval_robustness = args.eval_robustness
 
@@ -182,7 +182,7 @@ class Segtran3d(SegtranInitWeights):
                 pretrained_i3d_path = os.path.join(
                     i3d_folder, "aj_rgb_imagenet.pth")
                 state_dict = torch.load(
-                    pretrained_i3d_path, map_location=torch.device('cpu'))
+                    pretrained_i3d_path, map_location=torch.device('cuda'))
                 self.backbone.load_state_dict(state_dict)
                 print("Loaded pretrained i3d model '{}'".format(
                     pretrained_i3d_path))
@@ -560,7 +560,7 @@ class Segtran3d(SegtranInitWeights):
             print("\nFeat: %s, Voxels: %s. Model DHW scales: %dx%dx%d. Total scales: %s" %
                   (list(xyz_shape), list(vfeat_fpn.shape), model_scale_D, model_scale_H, model_scale_W, total_pos_scale))
             self.scales_printed = True
-        curr_dev = 'cpu'
+        curr_dev = 'cuda'
         scale = torch.tensor([total_pos_scale], device=curr_dev)
         # xyz_indices: [3920, 3].
         # Rectify the scales on H, W, D. The indices now are pixel coordinates in the original input image.

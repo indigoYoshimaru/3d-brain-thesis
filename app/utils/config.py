@@ -28,7 +28,7 @@ MASK_COLORS = {'load': [(0, 0.12, 0.25), (0.22, 0.8, 0.8), (0, 0, 0), (0, 0.45, 
 # MASK_COLORS = [(1, 0, 0), (0, 1, 0), (1, 1, 0), (0, 0, 1)]
 
 MASK_OPACITY = 1.0
-MODEL_PATH = 'app/model_controller/weights/segtran_iter_81500.pth'
+MODEL_PATH = 'app/model_controller/weights/iter_56500.pth'
 # model config
 
 model_config = {
@@ -59,7 +59,7 @@ model_config = {
     'D_pool_K': 2,
     'out_fpn_upsampleD_scheme': 'conv',
     'input_scale':  (1,   1,   1),
-    'device': 'cpu',
+    'device': 'cuda',
     'in_fpn_layers': '34',
     'out_fpn_layers': '1234',
     'in_fpn_scheme': 'AN',
@@ -85,7 +85,7 @@ segtran_config = {
     'binarize': False,
     'chosen_modality': -1,
     'debug': False,
-    'device': 'cpu',
+    'device': 'cuda',
     'ds_class': 'BratsSet',
     'ds_split': 'all',
     'eval_robustness': False,

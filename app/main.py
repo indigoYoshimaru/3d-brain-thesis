@@ -7,7 +7,7 @@ from utils.config import *
 
 if __name__ == "__main__":
     sys_dirs = [
-        'D:\\2122sem1\pre_thesis\\brain-reconstruction\\code\\3d-brain-thesis\\']
+        './3d-brain-thesis']
     for sdir in sys_dirs:
         sys.path.append(os.path.dirname(sdir))
     print(sys.path)
@@ -16,5 +16,6 @@ if __name__ == "__main__":
 
     app = QtWidgets.QApplication([])
     args, net = segtran_inference.load_model(MODEL_PATH)
+    net.cuda()
     window = MainWindow(app, args, net)
     sys.exit(app.exec_())

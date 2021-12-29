@@ -8,7 +8,7 @@ import nibabel as nib
 import numpy as np
 import math
 
-sys_dir = 'D:\\2122sem1\\pre_thesis\\brain-reconstruction\\code\\3d-brain-thesis'
+sys_dir = './3d-brain-thesis'
 sys.path.append(os.path.dirname(sys_dir))
 print(sys.path)
 from models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
@@ -110,6 +110,7 @@ def load_model_state(net, args, checkpoint_path):
 
     params.update(model_state_dict)
     net.load_state_dict(params)
+    net.cuda()
     return net
 
 
@@ -128,6 +129,7 @@ def load_model(path):
     net = Segtran3d(CONFIG)
     net = load_model_state(net, args, path)
     print(net)
+    
     return args, net
 
 
@@ -184,6 +186,8 @@ def load_brats_data(path_head):
         # print(np.count_nonzero(image.astype(np.float32)))
     # process and transform
     sample = process_input(img_mods)
+    del img_mods
+    sample = sample.to('cuda')
     return sample
 
 
@@ -224,7 +228,7 @@ def inference_patches(net, image, orig_patch_size, input_patch_size, batch_size,
     sy = math.ceil((W2 - dy) / stride_xy) + 1
     sz = math.ceil((D2 - dz) / stride_z) + 1
     # print("{}, {}, {}".format(sx, sy, sz))
-    preds_soft = torch.zeros((num_classes, ) + image.shape[1:], device='cpu')
+    preds_soft = torch.zeros((num_classes, ) + image.shape[1:], device='cuda')
     cnt = torch.zeros_like(image[0])
 
     for x in range(0, sx):
@@ -282,6 +286,8 @@ def inference_and_save(args, net, brain_path):
     path_head = brain_path.replace(brain_path.split('_')[-1], '')
     # args, net = load_model() # must init at the beginning! not every load time
     sample = load_brats_data(path_head)
+    # convert sample to cuda
+    
     preds_hard, preds_soft = inference_patches(net, sample, args.orig_patch_size, args.input_patch_size,
                                                1, args.orig_patch_size[0] // 2, args.orig_patch_size[2] // 2, args.num_classes)
     preds_hard = torch.argmax(brats_inv_map_label(preds_soft), dim=0)
