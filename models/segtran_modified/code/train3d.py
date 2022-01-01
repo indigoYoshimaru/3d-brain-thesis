@@ -607,6 +607,7 @@ if __name__ == "__main__":
         ToTensor(),
     )
 
+    # load here
     for i, train_data_path in enumerate(train_data_paths):
         ds_name = args.train_ds_names[i]
         ds_weight = ds_settings['weight'][ds_name]

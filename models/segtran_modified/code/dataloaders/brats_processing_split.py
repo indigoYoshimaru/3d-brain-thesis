@@ -110,9 +110,9 @@ def covert_h5(root):
         print("\n%s: %s => %s, %s" %
               (img_dir, image_shape, image_mm.shape, labels.shape))
         if is_training:
-            path = '/content/drive/MyDrive/thesis/brain_segmentation/models_run/segtran-modified/data/brats/2021train'
+            path = '../data/brats/2021train'
         else:
-            path = '/content/drive/MyDrive/thesis/brain_segmentation/models_run/segtran-modified/data/brats/2021valid'
+            path = '../data/brats/2021valid'
         save_dir = join(path, img_dir)
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
