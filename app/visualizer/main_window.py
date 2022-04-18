@@ -33,7 +33,6 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.app = app
         self.net_args = net_args
         self.net = net
-        self.net.cuda()
         self.mask_opacity_sp = self.create_new_picker(
             1.0, 0.0, 0.1, MASK_OPACITY, self.mask_opacity_vc)
         self.mask_smoothness_sp = self.create_new_picker(

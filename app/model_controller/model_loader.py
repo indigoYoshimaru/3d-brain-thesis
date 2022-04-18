@@ -114,6 +114,5 @@ def load_segtran_model(cp_dir):
     if torch.cuda.is_available(): 
         net.cuda()
     load_segtran_model_state(net, args, cp_dir)
-    # print(net)
     return args, net
 
