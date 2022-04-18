@@ -71,7 +71,10 @@ def load_segtran_model_state(net, args, checkpoint_path):
 
 
 def load_unet_model_state(net, args, cp_dir, optimizer = None): 
-    state_dict = torch.load(cp_dir, map_location=torch.device('cuda'))
+    device='cpu'
+    if torch.cuda.is_available(): 
+        device = 'cuda'
+    state_dict = torch.load(cp_dir, map_location=torch.device(device))
     params = net.state_dict()
     model_state_dict = state_dict['model']
     optim_state_dict = state_dict['optim_state']

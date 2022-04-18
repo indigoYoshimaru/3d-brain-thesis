@@ -13,7 +13,7 @@ sys.path.append(os.path.dirname(sys_dir))
 print(sys.path)
 from models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
 from app.utils.config import *
-
+device = 'cpu'
 
 def brats_inv_map_label(orig_probs):
     # orig_probs[0] is not used. Prob of 0 (background) is inferred from probs of WT.
