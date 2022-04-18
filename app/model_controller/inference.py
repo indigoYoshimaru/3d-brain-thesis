@@ -153,6 +153,7 @@ def inference_patches(net, image, orig_patch_size, input_patch_size, batch_size,
     sy = math.ceil((W2 - dy) / stride_xy) + 1
     sz = math.ceil((D2 - dz) / stride_z) + 1
     # print("{}, {}, {}".format(sx, sy, sz))
+    device ='cpu'
     if torch.cuda.is_available(): 
         device = 'cuda'
     preds_soft = torch.zeros((num_classes, ) + image.shape[1:], device=device)
