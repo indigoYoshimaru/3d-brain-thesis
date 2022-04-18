@@ -15,7 +15,10 @@ if __name__ == "__main__":
     from visualizer.main_window import MainWindow
 
     app = QtWidgets.QApplication([])
+
     args, net = segtran_inference.load_model(MODEL_PATH)
-    net.cuda()
+    if torch.cuda.available(): 
+        net.cuda()
+    print(net)
     window = MainWindow(app, args, net)
     sys.exit(app.exec_())

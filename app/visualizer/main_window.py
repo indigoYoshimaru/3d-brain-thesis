@@ -274,7 +274,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
     def predict_growth(self):
         # havent been implemented
-        mask_file = ''
+        mask_file = '/home/seito/Documents/study/IU/thesis-storage/brats/2015/niftiis/brats_tcia_pat153_0181/VSD.Brain_3more.XX.O.OT.42331.nii.gz'
         mask_type = 'predict'
         mask = file_reader.read_mask(mask_file, mask_type)
         self.add_new_mask(mask_type, mask)

@@ -110,8 +110,11 @@ def load_model_state(net, args, checkpoint_path):
 
     params.update(model_state_dict)
     net.load_state_dict(params)
-    net.cuda()
-    return net
+    del params
+    del args2
+    del state_dict
+    del model_state_dict
+    # return net
 
 
 def load_model(path):
@@ -123,13 +126,12 @@ def load_model(path):
     # checkpoint['args']['device']='cpu'
     # print('CHECKPOINT: \n', checkpoint['args']['device'])
     args = convert_args(segtran_config)
-    print(args.device)
+    print(args)
 
     set_segtran3d_config(args)
     net = Segtran3d(CONFIG)
-    net = load_model_state(net, args, path)
-    print(net)
-    
+    load_model_state(net, args, path)
+    # print(net)
     return args, net
 
 
@@ -187,7 +189,8 @@ def load_brats_data(path_head):
     # process and transform
     sample = process_input(img_mods)
     del img_mods
-    sample = sample.to('cuda')
+    if torch.cuda.is_available(): 
+        sample = sample.to('cuda')
     return sample
 
 
@@ -228,7 +231,9 @@ def inference_patches(net, image, orig_patch_size, input_patch_size, batch_size,
     sy = math.ceil((W2 - dy) / stride_xy) + 1
     sz = math.ceil((D2 - dz) / stride_z) + 1
     # print("{}, {}, {}".format(sx, sy, sz))
-    preds_soft = torch.zeros((num_classes, ) + image.shape[1:], device='cuda')
+    if torch.cuda.is_available(): 
+        device = 'cuda'
+    preds_soft = torch.zeros((num_classes, ) + image.shape[1:], device=device)
     cnt = torch.zeros_like(image[0])
 
     for x in range(0, sx):
