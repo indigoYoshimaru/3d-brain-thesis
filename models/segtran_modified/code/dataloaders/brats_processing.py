@@ -51,12 +51,6 @@ def label_stats(root):
     print(cls_total_counts / cls_total_counts.sum())
     
 def covert_h5(root):
-    """
-    Convert nii to h5 by: 
-    - convert data to np float 32
-    - np stack the mods
-    - remove black margin 
-    """
     do_localization = False
 
     if 'validation' in root.lower():
@@ -81,7 +75,7 @@ def covert_h5(root):
         if is_training:
             # image_mods contains five modalities, including 'seg'.
             # Avoid putting 'seg' into 'image'.
-            image_mm = np.stack(image_mods[:-1], axis=0) # get all element of sequence, but not the last! 
+            image_mm = np.stack(image_mods[:-1], axis=0)
             MOD, H, W, D = image_shape = image_mm.shape
             # 'seg' => labels
             labels = image_mods[-1].astype(np.uint8)

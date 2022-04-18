@@ -11,14 +11,12 @@ if __name__ == "__main__":
     for sdir in sys_dirs:
         sys.path.append(os.path.dirname(sdir))
     print(sys.path)
-    from model_controller import segtran_inference
+    from model_controller import inference, model_loader
     from visualizer.main_window import MainWindow
 
     app = QtWidgets.QApplication([])
 
-    args, net = segtran_inference.load_model(MODEL_PATH)
-    if torch.cuda.available(): 
-        net.cuda()
+    args, net = model_loader.load_unet_model(MODEL_PATH)
     print(net)
     window = MainWindow(app, args, net)
     sys.exit(app.exec_())

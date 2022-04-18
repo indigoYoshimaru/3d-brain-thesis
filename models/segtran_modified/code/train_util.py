@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import models.segtran_modified.code.dataloaders.datasets2d
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -80,52 +79,52 @@ def init_augmentation(args):
     
     return common_aug_func, image_aug_func, robust_aug_funcs
     
-def init_training_dataset(args, ds_settings, ds_name, ds_split, train_data_path, sample_num,
-                          common_aug_func, image_aug_func, robust_aug_funcs):
-    DataSetClass = dataloaders.datasets2d.__dict__[args.ds_class]    
-    ds_weight    = ds_settings['weight'][ds_name]
-    if 'uncropped_size' in ds_settings:
-        uncropped_size  = ds_settings['uncropped_size'][ds_name]
-    else:
-        uncropped_size  = -1
+# def init_training_dataset(args, ds_settings, ds_name, ds_split, train_data_path, sample_num,
+#                           common_aug_func, image_aug_func, robust_aug_funcs):
+#     DataSetClass = dataloaders.datasets2d.__dict__[args.ds_class]    
+#     ds_weight    = ds_settings['weight'][ds_name]
+#     if 'uncropped_size' in ds_settings:
+#         uncropped_size  = ds_settings['uncropped_size'][ds_name]
+#     else:
+#         uncropped_size  = -1
 
-    if uncropped_size == -1 and 'orig_dir' in ds_settings:
-        orig_dir  = ds_settings['orig_dir'][ds_name]
-        orig_ext  = ds_settings['orig_ext'][ds_name]
-    else:
-        orig_dir = orig_ext = None
+#     if uncropped_size == -1 and 'orig_dir' in ds_settings:
+#         orig_dir  = ds_settings['orig_dir'][ds_name]
+#         orig_ext  = ds_settings['orig_ext'][ds_name]
+#     else:
+#         orig_dir = orig_ext = None
                     
-    has_mask      = ds_settings['has_mask'][ds_name]
-    mean          = ds_settings['mean'][ds_name]
-    std           = ds_settings['std'][ds_name]
-    image_trans_func = transforms.Compose(
-                            robust_aug_funcs + [   
-                            image_aug_func,
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean, std) ]
-                       )
+#     has_mask      = ds_settings['has_mask'][ds_name]
+#     mean          = ds_settings['mean'][ds_name]
+#     std           = ds_settings['std'][ds_name]
+#     image_trans_func = transforms.Compose(
+#                             robust_aug_funcs + [   
+#                             image_aug_func,
+#                             transforms.ToTensor(),
+#                             transforms.Normalize(mean, std) ]
+#                        )
                     
-    db_train = DataSetClass(base_dir=train_data_path,
-                            split=ds_split,
-                            mode='train',
-                            sample_num=sample_num,
-                            mask_num_classes=args.num_classes,
-                            has_mask=has_mask,
-                            ds_weight=ds_weight,
-                            common_aug_func=common_aug_func,
-                            image_trans_func=image_trans_func,
-                            segmap_trans_func=None,
-                            binarize=args.binarize,
-                            train_loc_prob=args.localization_prob,
-                            chosen_size=args.orig_input_size[0],   # ignored in SegWhole instances.
-                            uncropped_size=uncropped_size,
-                            min_output_size=args.patch_size,
-                            orig_dir=orig_dir,
-                            orig_ext=orig_ext)
+#     db_train = DataSetClass(base_dir=train_data_path,
+#                             split=ds_split,
+#                             mode='train',
+#                             sample_num=sample_num,
+#                             mask_num_classes=args.num_classes,
+#                             has_mask=has_mask,
+#                             ds_weight=ds_weight,
+#                             common_aug_func=common_aug_func,
+#                             image_trans_func=image_trans_func,
+#                             segmap_trans_func=None,
+#                             binarize=args.binarize,
+#                             train_loc_prob=args.localization_prob,
+#                             chosen_size=args.orig_input_size[0],   # ignored in SegWhole instances.
+#                             uncropped_size=uncropped_size,
+#                             min_output_size=args.patch_size,
+#                             orig_dir=orig_dir,
+#                             orig_ext=orig_ext)
                             
-    print("{}: {} images, uncropped_size: {}, has_mask: {}".format(
-            ds_name, len(db_train), uncropped_size, has_mask))
-    return db_train
+#     print("{}: {} images, uncropped_size: {}, has_mask: {}".format(
+#             ds_name, len(db_train), uncropped_size, has_mask))
+#     return db_train
 
 # Replace BatchNorm with GroupNorm
 # https://www.kaggle.com/c/aptos2019-blindness-detection/discussion/104686

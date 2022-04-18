@@ -8,7 +8,18 @@ import nibabel as nib
 import numpy as np
 import math
 
-def load_model_state(net, args, checkpoint_path):
+from models.segtran_modified.code.networks.segtran3d import Segtran3d, set_segtran3d_config, CONFIG
+from models.gan_based_unet.multiscale_generator import MultiscaleGenerator as UNet
+from app.utils.config import *
+
+def convert_args(args):
+    parser = argparse.ArgumentParser()
+    new_args = parser.parse_args()
+    for key, value in args.items():
+        new_args.__dict__[key] = value
+    return new_args
+
+def load_segtran_model_state(net, args, checkpoint_path):
     state_dict = torch.load(
         checkpoint_path, map_location=torch.device(args.device))
     state_dict['args']['device'] = args.device
@@ -57,4 +68,52 @@ def load_model_state(net, args, checkpoint_path):
     del args2
     del state_dict
     del model_state_dict
+
+
+def load_unet_model_state(net, args, cp_dir, optimizer = None): 
+    state_dict = torch.load(cp_dir, map_location=torch.device('cuda'))
+    params = net.state_dict()
+    model_state_dict = state_dict['model']
+    optim_state_dict = state_dict['optim_state']
+    iter_num = state_dict['iter_num'] + 1
+    epoch_num = state_dict['epoch_num'] + 1
+    loss_iters = state_dict.get('loss_iters', [])
+    loss_vals = state_dict.get('loss_vals', []) 
+
+    params.update(model_state_dict)
+    net.load_state_dict(params)
+    if optim_state_dict is not None and optimizer is not None:
+        optimizer.load_state_dict(optim_state_dict)
+    print(f'model loaded from {cp_dir}')
+    del params
+    del state_dict
+    del model_state_dict
+
+def load_unet_model(cp_dir): 
+    cfg = unet_config
+    net = UNet(in_channels=4, num_classes=4)
+    load_unet_model_state(net, cfg, cp_dir)
+    if torch.cuda.is_available(): 
+        net.cuda()
+    args = convert_args(cfg)
+    return args, net
+
+def load_segtran_model(cp_dir):
+    """
+    Load segtran model 
+    """
+    # map_loc = torch.device('cpu')
+    # checkpoint = torch.load(path, map_loc)
+    # checkpoint['args']['device']='cpu'
+    # print('CHECKPOINT: \n', checkpoint['args']['device'])
+    args = convert_args(segtran_config)
+    print(args)
+
+    set_segtran3d_config(args)
+    net = Segtran3d(CONFIG)
+    if torch.cuda.is_available(): 
+        net.cuda()
+    load_segtran_model_state(net, args, cp_dir)
+    # print(net)
+    return args, net
 

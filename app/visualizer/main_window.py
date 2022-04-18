@@ -10,7 +10,7 @@ from utils.config import *
 from objects.mask_object import MaskVisual
 from visualizer.file_dialog import FileDialog
 from handlers.file_reader import FileReader
-from model_controller import segtran_inference
+from model_controller import inference
 
 file_reader = FileReader()
 #
@@ -263,7 +263,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.renderer.Render()
 
     def segment_mask(self):
-        mask_file = segtran_inference.inference_and_save(
+        mask_file = inference.inference_and_save(
             self.net_args, self.net, self.brain_file)
 
         # temp
