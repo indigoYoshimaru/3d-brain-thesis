@@ -11,6 +11,7 @@ from objects.mask_object import MaskVisual
 from visualizer.file_dialog import FileDialog
 from handlers.file_reader import FileReader
 from model_controller import inference
+from utils.evaluation import calculate_accuracy
 
 file_reader = FileReader()
 #
@@ -125,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
         mask_settings_layout.addWidget(
             QtWidgets.QLabel("Current mask type"), 3, 0)
-        mask_types = ['load', 'segment', 'predict']
+        mask_types = ['load', 'segment']
         self.combox_widget = QtWidgets.QComboBox()
         self.combox_widget.addItems(mask_types)
         self.combox_widget.currentIndexChanged.connect(self.set_current_mask)
@@ -189,19 +190,22 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         load_brain_button = QtWidgets.QPushButton("Open brain MRI")
         load_mask_button = QtWidgets.QPushButton("Open mask")
         segment_button = QtWidgets.QPushButton("Segment tumor")
-        predict_button = QtWidgets.QPushButton("Predict tumor growth")
+        # predict_button = QtWidgets.QPushButton("Predict tumor growth")
+        eval_button = QtWidgets.QPushButton("Evaluate segment")
         function_box = QtWidgets.QGroupBox("Utils")
         function_box_layout = QtWidgets.QGridLayout()
         function_box_layout.addWidget(load_brain_button, 0, 0)
         function_box_layout.addWidget(load_mask_button, 0, 1)
         function_box_layout.addWidget(segment_button, 1, 0)
-        function_box_layout.addWidget(predict_button, 1, 1)
+        function_box_layout.addWidget(eval_button, 1, 1)
+        # function_box_layout.addWidget(predict_button, 1, 1)
         function_box.setLayout(function_box_layout)
         self.grid.addWidget(function_box, 0, 0, 2, 2)
         load_brain_button.clicked.connect(self.load_brain_file)
         load_mask_button.clicked.connect(self.load_mask_file)
         segment_button.clicked.connect(self.segment_mask)
-        predict_button.clicked.connect(self.predict_growth)
+        eval_button.clicked.connect(self.evaluate)
+        # predict_button.clicked.connect(self.predict_growth)
 
     def add_vtk_window_widget(self):
         """ grid to view brain and mask"""
@@ -262,14 +266,22 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.renderer.Render()
 
     def segment_mask(self):
-        mask_file = inference.inference_and_save(
+        self.seg_file = inference.inference_and_save(
             self.net_args, self.net, self.brain_file)
 
         # temp
         # mask_file = 'app/data/sample/BraTS2021_00000/BraTS2021_00000_pred.nii.gz'
         mask_type = 'segment'
-        mask = file_reader.read_mask(mask_file, mask_type)
+        mask = file_reader.read_mask(self.seg_file, mask_type)
+        # self.segmented = mask
         self.add_new_mask(mask_type, mask)
+
+    def evaluate(self): 
+        # if no mask -> display no mask found
+        # display scores as tables 
+        if not (self.mask_file and self.seg_file): 
+            return False
+        calculate_accuracy(self.mask_file, self.seg_file) 
 
     def predict_growth(self):
         # havent been implemented
