@@ -3,6 +3,7 @@ import time
 import os
 
 import PyQt5.QtWidgets as QtWidgets
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 import PyQt5.QtCore as Qt
 from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 import vtk
@@ -80,7 +81,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         """ add settings for brain settings group"""
         brain_group_box = QtWidgets.QGroupBox("Brain Settings")
         brain_group_layout = QtWidgets.QGridLayout()
-        brain_group_layout.addWidget(self.create_new_separator(), 5, 0, 1, 3)
+        # brain_group_layout.addWidget(self.create_new_separator(), 5, 0, 1, 3)
         brain_group_layout.addWidget(QtWidgets.QLabel("Axial Slice"), 6, 0)
         brain_group_layout.addWidget(QtWidgets.QLabel("Coronal Slice"), 7, 0)
         brain_group_layout.addWidget(QtWidgets.QLabel("Sagittal Slice"), 8, 0)
@@ -106,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             extent_index -= 2
 
         brain_group_box.setLayout(brain_group_layout)
-        self.grid.addWidget(brain_group_box, 8, 0, 1, 2)
+        self.grid.addWidget(brain_group_box, 8, 0, 1, 2) # arg, row, column, rowSpan, columnSpan
 
     def reset_slicers(self):
         extent_index = 5
@@ -116,16 +117,16 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
     def add_mask_settings_widget(self):
         """ add settings for mask settings group"""
-        mask_settings_group_box = QtWidgets.QGroupBox("Mask Settings")
+        mask_settings_group_box = QtWidgets.QGroupBox("Tumor Model Settings")
         mask_settings_layout = QtWidgets.QGridLayout()
-        mask_settings_layout.addWidget(QtWidgets.QLabel("Mask Opacity"), 0, 0)
+        mask_settings_layout.addWidget(QtWidgets.QLabel("Opacity"), 0, 0)
         mask_settings_layout.addWidget(
-            QtWidgets.QLabel("Mask Smoothness"), 1, 0)
+            QtWidgets.QLabel("Smoothness"), 1, 0)
         mask_settings_layout.addWidget(self.mask_opacity_sp, 0, 2)
         mask_settings_layout.addWidget(self.mask_smoothness_sp, 1, 2)
 
         mask_settings_layout.addWidget(
-            QtWidgets.QLabel("Current mask type"), 3, 0)
+            QtWidgets.QLabel("Current Model Type"), 3, 0)
         mask_types = ['load', 'segment']
         self.combox_widget = QtWidgets.QComboBox()
         self.combox_widget.addItems(mask_types)
@@ -134,10 +135,10 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         mask_settings_layout.addWidget(self.create_new_separator(), 2, 0, 1, 3)
 
         mask_settings_layout.addWidget(
-            QtWidgets.QLabel("Mask Labels"), 4, 0)
+            QtWidgets.QLabel("Tumor Layers"), 4, 0)
         self.mask_label_cbs = []
         brats_mask_labels = ['Necrosis',
-                             'Edema/Invasion', 'Enhancing tumor']
+                             'Invasion', 'Enhancing']
         for i in range(0, 3):
             self.mask_label_cbs.append(
                 QtWidgets.QCheckBox(brats_mask_labels[i]))
@@ -217,6 +218,25 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.grid.addWidget(object_group_box, 0, 2, 12, 8)
         self.grid.setColumnMinimumWidth(2, 700)
 
+    def add_vtk_table(self, data):
+        self.table_widget = QTableWidget()
+        self.table_widget.setRowCount(3)
+        self.table_widget.setColumnCount(4) 
+        self.table_widget.setVerticalHeaderLabels(list(data.keys()))
+        self.table_widget.setHorizontalHeaderLabels(['Dice score', 'Jaccard score', 'Hausdorff distance', 'Average surface distance'])
+        row = 0
+        for result in data.values(): 
+            print(result)
+            for col, res in enumerate(result): 
+                print(row, ' ', col, ' ', res)
+                item = QTableWidgetItem(str(res))
+                self.table_widget.setItem(row, col, item)
+            row+=1
+
+        # self.grid.addWidget(self.table_widget, 9, 0,2,2)
+        self.table_widget.show()
+            
+
     def add_new_mask(self, mtype, mask):
         # reset picker
         opac_pk = self.reset_picker(
@@ -281,7 +301,8 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         # display scores as tables 
         if not (self.mask_file and self.seg_file): 
             return False
-        calculate_accuracy(self.mask_file, self.seg_file) 
+        result = calculate_accuracy(self.mask_file, self.seg_file) 
+        self.add_vtk_table(result)
 
     def predict_growth(self):
         # havent been implemented
