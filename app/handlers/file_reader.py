@@ -2,7 +2,9 @@ import vtk
 from utils.config import *
 from objects.nii_object import *
 from handlers.vtk_handler import *
-
+from vtk.util import numpy_support
+from matplotlib.cm import get_cmap
+import numpy as np
 
 class FileReader:
     def __init__(self):
@@ -42,9 +44,18 @@ class FileReader:
         scalar_range = brain.reader.GetOutput().GetScalarRange()
         bw_lut = vtk.vtkLookupTable()
         bw_lut.SetTableRange(scalar_range)
-        bw_lut.SetSaturationRange(0, 0)
-        bw_lut.SetHueRange(0, 0)
-        bw_lut.SetValueRange(0, 2)
+        
+        if not BRAIN_CMAP:
+            bw_lut.SetSaturationRange(0, 0)
+            bw_lut.SetHueRange(0, 0)
+            bw_lut.SetValueRange(0, 2)
+
+        else: 
+            cmap = get_cmap(BRAIN_CMAP)
+            ctable = cmap(np.linspace(0, 1, 200))*255
+            ctable = ctable.astype(np.uint8)
+            bw_lut.SetTable(numpy_support.numpy_to_vtk(ctable))
+       
         bw_lut.Build()
 
         view_colors = vtk.vtkImageMapToColors()

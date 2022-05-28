@@ -3,13 +3,17 @@ APPLICATION_TITLE = "Unswell"
 BRAIN_SMOOTHNESS = 500
 BRAIN_OPACITY = 0.2
 BRAIN_COLORS = [(1.0, 0.9, 0.9)]  # RGB percentages
-
+BRAIN_CMAP = ''
 # default mask settings
 MASK_SMOOTHNESS = 500
 
-MASK_COLORS = {'load': [(0, 0.12, 0.25), (0.22, 0.8, 0.8), (0, 0, 0), (0, 0.45, 0.85)],
-               'segment': [(0.52, 0.08, 0.29), (0.69, 0.05, 0.79), (0, 0, 0), (0.94, 0.07, 0.75)],
-               'predict': [(1.00, 0.25, 0.21), (1.00, 0.86, 0.00), (0, 0, 0), (1.00, 0.52, 0.11)]}
+# MASK_COLORS = {'load': [(0, 0.12, 0.25), (0.22, 0.8, 0.8), (0, 0, 0), (0, 0.45, 0.85)],
+#                'segment': [(0.52, 0.08, 0.29), (0.69, 0.05, 0.79), (0, 0, 0), (0.94, 0.07, 0.75)],
+#                'predict': [(1.00, 0.25, 0.21), (1.00, 0.86, 0.00), (0, 0, 0), (1.00, 0.52, 0.11)]}
+
+MASK_COLORS = {'load': [(1.00, 0.52, 0.11), (1.00, 0.25, 0.21), (0, 0, 0), (1.00, 0.86, 0.00)],
+               'segment': [(0,0.78, 0.28), (0.1, 0.45, 0.33), (0,0,0), (0.34, 0.91, 0.78)]}
+
 
 MASK_OPACITY = 1.0
 MODEL_PATH = 'app/model_controller/weights/generator_epoch100.pth'
