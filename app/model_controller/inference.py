@@ -112,7 +112,6 @@ def inference_patches(net, image, orig_patch_size, input_patch_size, batch_size,
 
 def inference_and_save(args, net, brain_path):
     path_head = brain_path.replace(brain_path.split('_')[-1], '')
-    # args, net = load_model() # must init at the beginning! not every load time
     sample = load_brats_img_data(path_head)
     # convert sample to cuda
     if torch.cuda.is_available(): 

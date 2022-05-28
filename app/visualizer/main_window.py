@@ -17,7 +17,6 @@ from utils.evaluation import calculate_accuracy
 file_reader = FileReader()
 #
 
-
 class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
     """
     """
@@ -172,9 +171,9 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
     def add_view_settings_widget(self):
         """ add option to choose view """
-        axial_view = QtWidgets.QPushButton("Axial")
-        coronal_view = QtWidgets.QPushButton("Coronal")
-        sagittal_view = QtWidgets.QPushButton("Sagittal")
+        axial_view = QtWidgets.QPushButton("Axial (Top-Bottom view)")
+        coronal_view = QtWidgets.QPushButton("Coronal (Front-Back view)")
+        sagittal_view = QtWidgets.QPushButton("Sagittal (Left-Right view)")
         views_box = QtWidgets.QGroupBox("Views")
         views_box_layout = QtWidgets.QVBoxLayout()
         views_box_layout.addWidget(axial_view)
@@ -189,7 +188,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
     def add_functions_settings_widget(self):
         """ option to load file, segment and predict"""
         load_brain_button = QtWidgets.QPushButton("Open brain MRI")
-        load_mask_button = QtWidgets.QPushButton("Open mask")
+        load_mask_button = QtWidgets.QPushButton("Open tumor label")
         segment_button = QtWidgets.QPushButton("Segment tumor")
         # predict_button = QtWidgets.QPushButton("Predict tumor growth")
         eval_button = QtWidgets.QPushButton("Evaluate segment")
@@ -234,6 +233,9 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             row+=1
 
         # self.grid.addWidget(self.table_widget, 9, 0,2,2)
+        self.table_widget.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.table_widget.resizeColumnsToContents()
+        # self.table_widget.setSectionResizeMode(3)
         self.table_widget.show()
             
 
