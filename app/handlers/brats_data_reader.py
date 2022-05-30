@@ -8,20 +8,20 @@ import math
 def brats_map_label(mask):
     num_classes = 4
     if type(mask) == torch.Tensor:
-        mask_nhot = torch.zeros((num_classes,) + mask.shape, device='cuda')
+        mask_encode = torch.zeros((num_classes,) + mask.shape, device='cuda')
     else:
-        mask_nhot = np.zeros((num_classes,) + mask.shape)
+        mask_encode = np.zeros((num_classes,) + mask.shape)
 
     # 1 for NCR & NET, 2 for ED, 3 for ET, and 0 for everything else.
-    mask_nhot[0, mask==0] = 1
-    mask_nhot[1, mask==3] = 1                               # P(ET) = P(3)
-    mask_nhot[2, (mask==3) | (mask==1) | (mask==2)] = 1 # P(WT) = P(1)+P(2)+P(3)
-    mask_nhot[3, (mask==3) | (mask==1)] = 1               # P(TC) = P(1)+P(3)
+    mask_encode[0, mask==0] = 1
+    mask_encode[1, mask==3] = 1                               # P(ET) = P(3)
+    mask_encode[2, (mask==3) | (mask==1) | (mask==2)] = 1 # P(WT) = P(1)+P(2)+P(3)
+    mask_encode[3, (mask==3) | (mask==1)] = 1               # P(TC) = P(1)+P(3)
     # Has the batch dimension. Swap the batch to the zero-th dim.
 
-    if len(mask_nhot.shape) == 5:
-        mask_nhot = mask_nhot.permute(1, 0, 2, 3, 4)
-    return mask_nhot
+    if len(mask_encode.shape) == 5:
+        mask_encode = mask_encode.permute(1, 0, 2, 3, 4)
+    return mask_encode
 
 def brats_inv_map_label(orig_probs):
     # orig_probs[0] is not used. Prob of 0 (background) is inferred from probs of WT.

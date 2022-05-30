@@ -18,7 +18,7 @@ def calculate_accuracy(gt_file, pred_file):
         gt   = gt_mask[cls].astype(np.uint8)
    
         dice = metric.binary.dc(pred, gt)
-        jc =0
+        jc = 0
         hd = 0
         asd = 0
         if gt.sum() > 0:

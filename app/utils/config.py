@@ -3,7 +3,7 @@ APPLICATION_TITLE = "Unswell"
 BRAIN_SMOOTHNESS = 500
 BRAIN_OPACITY = 0.2
 BRAIN_COLORS = [(1.0, 0.9, 0.9)]  # RGB percentages
-BRAIN_CMAP = ''
+BRAIN_CMAP = '' # bone, nipy_spectral, gist_earth, gist_stern may work best. left empty for black and white MRI
 # default mask settings
 MASK_SMOOTHNESS = 500
 
@@ -16,7 +16,7 @@ MASK_COLORS = {'load': [(1.00, 0.52, 0.11), (1.00, 0.25, 0.21), (0, 0, 0), (1.00
 
 
 MASK_OPACITY = 1.0
-MODEL_PATH = 'app/model_controller/weights/generator_epoch100.pth'
+MODEL_PATH = 'app/model_controller/weights/generator_epoch100_new.pth'
 
 # model config
 

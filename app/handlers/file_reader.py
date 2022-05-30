@@ -57,7 +57,6 @@ class FileReader:
             bw_lut.SetTable(numpy_support.numpy_to_vtk(ctable))
        
         bw_lut.Build()
-
         view_colors = vtk.vtkImageMapToColors()
         view_colors.SetInputConnection(brain.reader.GetOutputPort())
         view_colors.SetLookupTable(bw_lut)
