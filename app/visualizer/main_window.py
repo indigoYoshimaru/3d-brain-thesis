@@ -26,7 +26,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         QtWidgets.QMainWindow.__init__(self, None)
         self.mask_file = ""
         self.brain_file = ""
-        # create a mask dict to handel multiple mask-> load, segment, and predict
+        # create a mask dict to handel multiple mask-> Ground truth, segment, and predict
         self.mask_dict = dict()
         self.brain_loaded = False
         self.slicer_widgets = []
@@ -126,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
         mask_settings_layout.addWidget(
             QtWidgets.QLabel("Current Model Type"), 3, 0)
-        mask_types = ['load', 'segment']
+        mask_types = ['Ground truth', 'Segmented']
         self.combox_widget = QtWidgets.QComboBox()
         self.combox_widget.addItems(mask_types)
         self.combox_widget.currentIndexChanged.connect(self.set_current_mask)
@@ -149,7 +149,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         self.reset_mask_check()
 
     def reset_mask_check(self):
-        mask_visual = self.mask_dict.get('load')
+        mask_visual = self.mask_dict.get('Ground truth')
 
         if mask_visual:
             mask = mask_visual.mask
@@ -186,7 +186,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
         sagittal_view.clicked.connect(self.set_sagittal_view)
 
     def add_functions_settings_widget(self):
-        """ option to load file, segment and predict"""
+        """ option to Ground truth file, segment and predict"""
         load_brain_button = QtWidgets.QPushButton("Open brain MRI")
         load_mask_button = QtWidgets.QPushButton("Open tumor label")
         segment_button = QtWidgets.QPushButton("Segment tumor")
@@ -278,7 +278,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
             return
         self.mask_file = mask_file
         file_reader.renderer = self.renderer
-        mask_type = 'load'
+        mask_type = 'Ground truth'
         mask = file_reader.read_mask(self.mask_file, mask_type)
         self.add_new_mask(mask_type, mask)
         self.mask = mask
@@ -293,7 +293,7 @@ class MainWindow(QtWidgets.QMainWindow, QtWidgets.QApplication):
 
         # temp
         # mask_file = 'app/data/sample/BraTS2021_00000/BraTS2021_00000_pred.nii.gz'
-        mask_type = 'segment'
+        mask_type = 'Segmented'
         mask = file_reader.read_mask(self.seg_file, mask_type)
         # self.segmented = mask
         self.add_new_mask(mask_type, mask)
