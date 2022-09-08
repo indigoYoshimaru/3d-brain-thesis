@@ -7,3 +7,5 @@ torchaudio
 opencv-python-headless
 imgaug
 tqdm
+medpy
+matplotlib
